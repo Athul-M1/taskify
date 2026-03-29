@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { signupSchema } from "@/lib/auth/schemas";
-import { hashPassword } from "@/lib/auth/password";
-import { createUser, getUserByEmail } from "@/lib/auth/store";
-import { setSessionForEmail } from "@/lib/auth/session-cookie";
+import { AUTH_COOKIE, getBackendUrl } from "@/lib/auth/constants";
 
 export async function POST(request: Request) {
   let json: unknown;
@@ -21,21 +20,26 @@ export async function POST(request: Request) {
   }
 
   const { name, email, password } = parsed.data;
-  if (getUserByEmail(email)) {
-    return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
-  }
 
-  const ok = createUser({
-    email: email.toLowerCase(),
-    name,
-    passwordHash: hashPassword(password),
+  const backend = getBackendUrl();
+  const res = await fetch(`${backend}/api/v1/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, password }),
   });
 
-  if (!ok) {
-    return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
+  const data = (await res.json()) as { error?: string; token?: string; email?: string; user?: { name?: string } };
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: typeof data.error === "string" ? data.error : "Could not create account" },
+      { status: res.status >= 400 && res.status < 600 ? res.status : 400 }
+    );
   }
 
-  await setSessionForEmail(email.toLowerCase());
-
-  return NextResponse.json({ ok: true, name }, { status: 201 });
+  // Registration no longer returns a token immediately since verification is required
+  return NextResponse.json(
+    { ok: true, name: data.user?.name ?? name, email: data.email ?? email },
+    { status: 201 }
+  );
 }

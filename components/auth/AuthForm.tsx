@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type UseFormRegister, type FieldValues, type Path } from "react-hook-form";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,8 +87,8 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
         setError(result.error);
         return;
       }
-      router.push("/dashboard");
-      router.refresh();
+      // Redirect to verification page instead of dashboard
+      router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -96,17 +97,22 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <div className="relative mx-auto flex h-screen max-w-6xl min-h-screen items-center justify-center">
-      <div className="hidden flex-1 flex-col items-start justify-center gap-0 px-12 md:flex">
+    <div className="relative mx-auto flex h-screen max-w-6xl min-h-screen items-center justify-center overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="hidden flex-1 flex-col items-start justify-center gap-0 px-12 md:flex"
+      >
         <div className="mb-8 flex items-center gap-3">
-          <ListChecksIcon className="size-12 text-brand" />
+          <ListChecksIcon className="size-12 text-blue-600 dark:text-blue-400" />
           <span className="text-4xl font-bold tracking-tight text-foreground">
-            TaskFlow
+            Taskify
           </span>
         </div>
 
         <h1 className="flex flex-col gap-2 text-5xl text-foreground/90">
-          {isLogin ? "Welcome Back!" : "Join TaskFlow"}
+          {isLogin ? "Welcome Back!" : "Join Taskify"}
           <span className="text-4xl text-muted-foreground">
             {isLogin
               ? "Stay Productive, Stay Organized"
@@ -115,26 +121,46 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
         </h1>
 
         <div className="mt-8 space-y-4">
-          <div className="flex items-center gap-3 text-muted-foreground">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="flex items-center gap-3 text-muted-foreground"
+          >
             <CalendarIcon className="size-5 text-blue-500 dark:text-blue-400" />
             <span>Plan your tasks efficiently</span>
-          </div>
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <ClockIcon className="size-5 text-brand-soft" />
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="flex items-center gap-3 text-muted-foreground"
+          >
+            <ClockIcon className="size-5 text-blue-500 dark:text-blue-400" />
             <span>Track deadlines and progress</span>
-          </div>
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <CheckIcon className="size-5 text-brand-soft" />
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="flex items-center gap-3 text-muted-foreground"
+          >
+            <CheckIcon className="size-5 text-blue-500 dark:text-blue-400" />
             <span>Achieve more with smart task management</span>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="flex flex-1 flex-col items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="flex flex-1 flex-col items-center justify-center p-4"
+      >
         <Card className="w-full shadow-lg md:w-96">
           <CardHeader className="text-center">
             <div className="mb-2 flex justify-center">
-              <ListChecksIcon className="size-10 text-brand" />
+              <ListChecksIcon className="size-10 text-blue-600 dark:text-blue-400" />
             </div>
             <CardTitle className="text-4xl font-medium text-foreground">
               {isLogin ? "Welcome Back" : "Create Account"}
@@ -142,7 +168,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
             <CardDescription className="mt-3 text-sm text-muted-foreground">
               {isLogin
                 ? "Sign in to manage your tasks and boost productivity"
-                : "Join TaskFlow and start organizing your tasks today"}
+                : "Join Taskify and start organizing your tasks today"}
             </CardDescription>
           </CardHeader>
 
@@ -178,14 +204,14 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                 <div className="flex justify-end">
                   <Link
                     href="/forgot-password"
-                    className="text-sm font-medium text-brand transition-colors hover:text-brand-link-hover"
+                    className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                   >
                     Forgot password?
                   </Link>
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-brand text-brand-foreground hover:bg-brand-hover"
+                  className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                   disabled={isLoading}
                 >
                   {isLoading ? "Signing in…" : "Sign In"}
@@ -255,7 +281,7 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
                 )}
                 <Button
                   type="submit"
-                  className="w-full bg-brand text-brand-foreground hover:bg-brand-hover"
+                  className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                   disabled={isLoading}
                 >
                   {isLoading ? "Creating account…" : "Create Account"}
@@ -269,14 +295,14 @@ export default function AuthForm({ mode }: { mode: AuthMode }) {
               {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
               <Link
                 href={isLogin ? "/register" : "/login"}
-                className="font-medium text-brand transition-colors hover:text-brand-link-hover"
+                className="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 {isLogin ? "Create account" : "Sign in"}
               </Link>
             </p>
           </CardFooter>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 }

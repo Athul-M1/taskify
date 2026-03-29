@@ -18,9 +18,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Task Management System",
+  title: "Taskify",
   description: "A system for managing tasks and projects",
 };
+
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -35,10 +37,8 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <div className="fixed top-4 right-4 z-50">
-            <ThemeToggle />
-          </div>
           {children}
+          <Toaster richColors position="bottom-right" />
         </ThemeProvider>
       </body>
     </html>

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { loginSchema } from "@/lib/auth/schemas";
-import { verifyPassword } from "@/lib/auth/password";
-import { getUserByEmail } from "@/lib/auth/store";
-import { setSessionForEmail } from "@/lib/auth/session-cookie";
+import { AUTH_COOKIE, getBackendUrl } from "@/lib/auth/constants";
 
 export async function POST(request: Request) {
   let json: unknown;
@@ -20,13 +19,37 @@ export async function POST(request: Request) {
     );
   }
 
-  const { email, password } = parsed.data;
-  const user = getUserByEmail(email);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+  const backend = getBackendUrl();
+  const res = await fetch(`${backend}/api/v1/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(parsed.data),
+  });
+
+  const data = (await res.json()) as { error?: string; token?: string; user?: { name?: string } };
+
+  if (!res.ok) {
+    return NextResponse.json(
+      { error: typeof data.error === "string" ? data.error : "Sign in failed" },
+      { status: res.status }
+    );
   }
 
-  await setSessionForEmail(user.email);
+  if (!data.token) {
+    return NextResponse.json({ error: "Invalid response from server" }, { status: 502 });
+  }
 
-  return NextResponse.json({ ok: true, name: user.name });
+  const cookieStore = await cookies();
+  cookieStore.set(AUTH_COOKIE, data.token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  return NextResponse.json({
+    ok: true,
+    name: data.user?.name,
+  });
 }
